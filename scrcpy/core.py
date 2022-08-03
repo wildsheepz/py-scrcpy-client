@@ -29,6 +29,7 @@ class Client:
         lock_screen_orientation: int = LOCK_SCREEN_ORIENTATION_UNLOCKED,
         connection_timeout: int = 3000,
         encoder_name: Optional[str] = None,
+        turn_off_screen_on_disconnect: bool = True,
     ):
         """
         Create a scrcpy client, this client won't be started until you call the start function
@@ -44,6 +45,7 @@ class Client:
             lock_screen_orientation: lock screen orientation, LOCK_SCREEN_ORIENTATION_*
             connection_timeout: timeout for connection, unit is ms
             encoder_name: encoder name, enum: [OMX.google.h264.encoder, OMX.qcom.video.encoder.avc, c2.qti.avc.encoder, c2.android.avc.encoder], default is None (Auto)
+            turn_off_screen_on_disconnect: turn off the screen on disconnecting
         """
         # Check Params
         assert max_width >= 0, "max_width must be greater than or equal to 0"
@@ -73,6 +75,7 @@ class Client:
         self.lock_screen_orientation = lock_screen_orientation
         self.connection_timeout = connection_timeout
         self.encoder_name = encoder_name
+        self.turn_off_screen_on_disconnect = turn_off_screen_on_disconnect
 
         # Connect to device
         if device is None:
@@ -160,7 +163,7 @@ class Client:
             "true" if self.stay_awake else "false",  # Stay awake
             "-",  # Codec (video encoding) options
             self.encoder_name or "-",  # Encoder name
-            "false",  # Power off screen after server closed
+            "true" if self.turn_off_screen_on_disconnect else "false",  # Power off screen after server closed
         ]
 
         self.__server_stream: AdbConnection = self.device.shell(
